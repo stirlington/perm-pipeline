@@ -7,7 +7,7 @@ DATA_FILE = 'recruitment_data.csv'
 
 # Load or initialize data
 if not os.path.exists(DATA_FILE):
-    df = pd.DataFrame(columns=['Type', 'Name', 'Client', 'Vacancy', 'Terms %', 'Probability %', 'Salary', 'Fee £', 'Probability Fee £', 'Projected Month', 'Start Month', 'Status'])
+    df = pd.DataFrame(columns=['Type', 'Name', 'Client', 'Vacancy', 'Terms %', 'Probability %', 'Salary', 'Fee £', 'Probability Fee £', 'Projected Month', 'Start Month', 'Status', 'Interview Stage'])
     df.to_csv(DATA_FILE, index=False)
 else:
     df = pd.read_csv(DATA_FILE)
@@ -63,6 +63,7 @@ elif page == "Pipeline":
         projected_month = st.selectbox("Projected Offer Month", month_options)
         start_month = st.selectbox("Start/Invoice Month", month_options)
         status = st.selectbox('Status', ['Active', 'Offered', 'Accepted', 'Rejected'])
+        interview_stage = st.selectbox('Interview Stage', ['1st Stage', '2nd Stage', '3rd Stage', 'Final Stage'])
         
         # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
@@ -80,7 +81,8 @@ elif page == "Pipeline":
                 'Probability Fee £': salary * (terms / 100) * (probability / 100),
                 'Projected Month': projected_month,
                 'Start Month': start_month,
-                'Status': status
+                'Status': status,
+                'Interview Stage': interview_stage
             }
             df = df.append(new_entry, ignore_index=True)
             df.to_csv(DATA_FILE, index=False)
