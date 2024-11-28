@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from mitosheet.streamlit.v1 import spreadsheet
 import os
 
 # Define file paths for persistence
@@ -19,24 +18,24 @@ st.title('Recruitment Pipeline Tracker')
 # Display logo
 st.sidebar.image("logo.png", use_column_width=True)
 
-# Home page with spreadsheet view
+# Home page with data table view
 st.header("Recruitment Pipeline Overview")
 
-# Use Mito's spreadsheet to display and edit the data
-final_dfs, code = spreadsheet(df)
+# Display the dataframe with editable options
+edited_df = st.experimental_data_editor(df, num_rows="dynamic")
 
 # Save changes back to CSV
 if st.button('Save Changes'):
-    final_dfs['dataframe'].to_csv(DATA_FILE, index=False)
+    edited_df.to_csv(DATA_FILE, index=False)
     st.success('Changes saved!')
 
 # Download the current dataset as CSV
 st.download_button(
     label="Download Data as CSV",
-    data=final_dfs['dataframe'].to_csv(index=False).encode('utf-8'),
+    data=edited_df.to_csv(index=False).encode('utf-8'),
     file_name='recruitment_pipeline.csv',
     mime='text/csv'
 )
 
 # Instructions for users
-st.info("Use the spreadsheet above to add, edit, or remove entries. Click 'Save Changes' to persist your edits.")
+st.info("Use the table above to add, edit, or remove entries. Click 'Save Changes' to persist your edits.")
