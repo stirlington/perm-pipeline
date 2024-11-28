@@ -68,7 +68,7 @@ elif page == "Pipeline":
         # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
 
-        if submit_entry:
+        if submit_entry and name and client and vacancy:
             new_entry = pd.DataFrame([{
                 'Type': type_,
                 'Name': name,
@@ -92,12 +92,12 @@ elif page == "Pipeline":
     if not df.empty:
         df_display = calculate_fees(df.copy())
         
-        # Add buttons for each row to delete or mark as failed
+        # Display the table with buttons for each row
         for i in range(len(df_display)):
             row_data = df_display.iloc[i]
             col1, col2, col3 = st.columns([4, 1, 1])
             with col1:
-                st.write(row_data.to_dict())
+                st.write(row_data.to_frame().T)
             with col2:
                 if st.button(f'Delete {i}', key=f'del_{i}'):
                     df_display.drop(i, inplace=True)
