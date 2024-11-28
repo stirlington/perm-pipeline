@@ -50,7 +50,7 @@ if page == "Home":
 elif page == "Pipeline":
     st.title('Manage Recruitment Pipeline')
     
-    # Form to add new entries in a row format
+    # Form to add new entries or update existing ones
     with st.form(key='add_entry'):
         col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
         with col1:
@@ -69,7 +69,7 @@ elif page == "Pipeline":
             projected_month = st.selectbox("Projected Month (optional)", [""] + month_options)
         
         # Submit button for the form
-        submit_entry = st.form_submit_button('Add Entry')
+        submit_entry = st.form_submit_button('Add/Update Entry')
 
         if submit_entry and vacancy and candidate_name and client:
             if vacancy in df['Vacancy'].values:
@@ -102,7 +102,7 @@ elif page == "Pipeline":
                 df = pd.concat([df, new_entry], ignore_index=True)
 
             df.to_csv(DATA_FILE, index=False)
-            st.success("Entry added successfully!")
+            st.success("Entry added/updated successfully!")
 
     # Display current pipeline data with deletion option
     if not df.empty:
@@ -115,16 +115,17 @@ elif page == "Pipeline":
             with col1:
                 st.write(row_data.to_frame().T.style.hide(axis='index'))
             with col2:
-                if st.button(f'Delete {i}', key=f'del_{i}'):
-                    df_display.drop(i, inplace=True)
-                    df_display.reset_index(drop=True, inplace=True)
-                    df_display.to_csv(DATA_FILE, index=False)
-                    st.success(f"Entry {i} deleted successfully!")
-            with col3:
-                if st.button(f'Mark Failed {i}', key=f'fail_{i}'):
-                    df_display.at[i, 'Status'] = 'Failed/Pulled Out'
-                    df_display.to_csv(DATA_FILE, index=False)
-                    st.success(f"Entry {i} marked as Failed/Pulled Out!")
+                if st.button(f'X {i}', key=f'del_{i}'):
+                    confirm_delete = st.radio(f"Confirm action for entry {i}", ('Delete Permanently', 'Mark as Failed/Pulled Out'))
+                    if confirm_delete == 'Delete Permanently':
+                        df_display.drop(i, inplace=True)
+                        df_display.reset_index(drop=True, inplace=True)
+                        df_display.to_csv(DATA_FILE, index=False)
+                        st.success(f"Entry {i} deleted successfully!")
+                    elif confirm_delete == 'Mark as Failed/Pulled Out':
+                        df_display.at[i, 'Status'] = 'Failed/Pulled Out'
+                        df_display.to_csv(DATA_FILE, index=False)
+                        st.success(f"Entry {i} marked as Failed/Pulled Out!")
         
         # Refresh the dataframe display after modifications
         if not df_display.empty:
