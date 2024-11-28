@@ -60,6 +60,8 @@ elif page == "Pipeline":
         projected_month = st.selectbox("Projected Offer Month", month_options)
         start_month = st.selectbox("Start/Invoice Month", month_options)
         status = st.selectbox('Status', ['Active', 'Offered', 'Accepted', 'Rejected'])
+        
+        # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
 
         if submit_entry:
