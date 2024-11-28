@@ -92,10 +92,7 @@ elif page == "Pipeline":
     if not df.empty:
         df_display = calculate_fees(df.copy())
         
-        # Create a list to track rows marked for deletion or update
-        rows_to_delete = []
-        
-        # Display the table with buttons for each row
+        # Add buttons for each row to delete or mark as failed
         for i in range(len(df_display)):
             row_data = df_display.iloc[i]
             col1, col2, col3 = st.columns([4, 1, 1])
@@ -103,21 +100,15 @@ elif page == "Pipeline":
                 st.write(row_data.to_dict())
             with col2:
                 if st.button(f'Delete {i}', key=f'del_{i}'):
-                    rows_to_delete.append(i)
+                    df_display.drop(i, inplace=True)
+                    df_display.reset_index(drop=True, inplace=True)
+                    df_display.to_csv(DATA_FILE, index=False)
+                    st.success(f"Entry {i} deleted successfully!")
             with col3:
                 if st.button(f'Mark Failed {i}', key=f'fail_{i}'):
                     df_display.at[i, 'Status'] = 'Failed/Pulled Out'
                     df_display.to_csv(DATA_FILE, index=False)
                     st.success(f"Entry {i} marked as Failed/Pulled Out!")
-        
-        # Delete rows after confirmation
-        if rows_to_delete:
-            confirm_delete = st.button("Confirm Deletion")
-            if confirm_delete:
-                df_display.drop(rows_to_delete, inplace=True)
-                df_display.reset_index(drop=True, inplace=True)
-                df_display.to_csv(DATA_FILE, index=False)
-                st.success("Selected entries deleted successfully!")
         
         # Refresh the dataframe display after modifications
         if not df_display.empty:
