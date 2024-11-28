@@ -7,15 +7,14 @@ DATA_FILE = 'recruitment_data.csv'
 
 # Load or initialize data
 if not os.path.exists(DATA_FILE):
-    df = pd.DataFrame(columns=['Candidate Name', 'Client', 'Vacancy', 'Salary', 'Terms %', 'Probability %', 'Fee £', 'Probability Fee £', 'Projected Month', 'Status'])
+    df = pd.DataFrame(columns=['Vacancy', 'Candidates', 'Client', 'Lowest Salary', 'Terms %', 'Probability %', 'Projected Fee £', 'Projected Month', 'Status'])
     df.to_csv(DATA_FILE, index=False)
 else:
     df = pd.read_csv(DATA_FILE)
 
 # Function to calculate fees
 def calculate_fees(df):
-    df['Fee £'] = df['Salary'] * (df['Terms %'] / 100)
-    df['Probability Fee £'] = df['Fee £'] * (df['Probability %'] / 100)
+    df['Projected Fee £'] = df['Lowest Salary'] * (df['Terms %'] / 100) * (df['Probability %'] / 100)
     return df
 
 # Streamlit app layout
@@ -41,13 +40,13 @@ if page == "Pipeline":
     with st.form(key='add_entry'):
         col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
         with col1:
-            name = st.text_input('Candidate Name')
-        with col2:
-            client = st.text_input('Client')
-        with col3:
             vacancy = st.text_input('Vacancy')
+        with col2:
+            candidates = st.text_area('Candidates (comma-separated)')
+        with col3:
+            client = st.text_input('Client')
         with col4:
-            salary = st.number_input('Salary (£)', min_value=0.0, step=1000.0)
+            salaries = st.text_input('Salaries (£, comma-separated)')
         with col5:
             terms = st.number_input('Terms %', min_value=0.0, max_value=100.0, step=0.1)
         with col6:
@@ -58,22 +57,24 @@ if page == "Pipeline":
         # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
 
-        if submit_entry and name and client and vacancy:
-            new_entry = pd.DataFrame([{
-                'Candidate Name': name,
-                'Client': client,
-                'Vacancy': vacancy,
-                'Salary': salary,
-                'Terms %': terms,
-                'Probability %': probability,
-                'Fee £': salary * (terms / 100),
-                'Probability Fee £': salary * (terms / 100) * (probability / 100),
-                'Projected Month': projected_month if projected_month else None,
-                'Status': 'Active'
-            }])
-            df = pd.concat([df, new_entry], ignore_index=True)
-            df.to_csv(DATA_FILE, index=False)
-            st.success("Entry added successfully!")
+        if submit_entry and vacancy and candidates and client and salaries:
+            salary_list = [float(s) for s in salaries.split(',') if s.strip().isdigit()]
+            if salary_list:
+                lowest_salary = min(salary_list)
+                new_entry = pd.DataFrame([{
+                    'Vacancy': vacancy,
+                    'Candidates': candidates,
+                    'Client': client,
+                    'Lowest Salary': lowest_salary,
+                    'Terms %': terms,
+                    'Probability %': probability,
+                    'Projected Fee £': lowest_salary * (terms / 100) * (probability / 100),
+                    'Projected Month': projected_month if projected_month else None,
+                    'Status': 'Active'
+                }])
+                df = pd.concat([df, new_entry], ignore_index=True)
+                df.to_csv(DATA_FILE, index=False)
+                st.success("Entry added successfully!")
 
     # Display current pipeline data with deletion option
     if not df.empty:
