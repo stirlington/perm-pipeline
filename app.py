@@ -31,9 +31,23 @@ else:
 month_options = [f"{month} {year}" for year in range(2024, 2027) for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]]
 
 # Main navigation
-page = st.sidebar.selectbox("Navigate", ["Pipeline"])
+page = st.sidebar.selectbox("Navigate", ["Home", "Pipeline", "Offered", "Invoiced"])
 
-if page == "Pipeline":
+if page == "Home":
+    st.title('Recruitment Pipeline Overview')
+    
+    # Calculate total pipeline value
+    total_value = df['Projected Fee £'].sum()
+    st.metric("Total Pipeline Value (£)", f"{total_value:,.2f}")
+
+    # Monthly projection dropdown
+    selected_month = st.selectbox("Select Month for Projection", month_options)
+    
+    # Show projected value for selected month
+    projected_value = df[df['Projected Month'] == selected_month]['Projected Fee £'].sum()
+    st.metric(f"Projected Value for {selected_month} (£)", f"{projected_value:,.2f}")
+
+elif page == "Pipeline":
     st.title('Manage Recruitment Pipeline')
     
     # Form to add new entries in a row format
@@ -101,6 +115,26 @@ if page == "Pipeline":
         # Refresh the dataframe display after modifications
         if not df_display.empty:
             st.dataframe(df_display)
+
+elif page == "Offered":
+    st.title('Offered Candidates')
+    
+    offered_candidates = df[df['Status'].isin(['Offered', 'Accepted'])]
+    
+    if not offered_candidates.empty:
+        offered_stats = offered_candidates.groupby('Status').size()
+        st.write(offered_stats)
+        st.dataframe(offered_candidates)
+
+elif page == "Invoiced":
+    st.title('Invoiced Candidates')
+    
+    invoiced_candidates = df[df['Status'] == 'Accepted']
+    
+    if not invoiced_candidates.empty:
+        invoiced_by_month = invoiced_candidates.groupby('Projected Month')['Projected Fee £'].sum()
+        st.write(invoiced_by_month)
+        st.dataframe(invoiced_candidates)
 
 # Download button for the full dataset
 st.sidebar.download_button(
