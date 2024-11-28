@@ -88,9 +88,17 @@ elif page == "Pipeline":
             df.to_csv(DATA_FILE, index=False)
             st.success("Entry added successfully!")
 
-    # Display current pipeline data
+    # Display current pipeline data with deletion option
     if not df.empty:
         df_display = calculate_fees(df.copy())
+        row_to_delete = st.selectbox("Select row to delete (by index)", df_display.index)
+        
+        if st.button('Delete Selected Row'):
+            df_display.drop(row_to_delete, inplace=True)
+            df_display.reset_index(drop=True, inplace=True)
+            df_display.to_csv(DATA_FILE, index=False)
+            st.success("Row deleted successfully!")
+        
         st.dataframe(df_display)
 
 elif page == "Offered":
