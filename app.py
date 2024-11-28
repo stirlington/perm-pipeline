@@ -110,10 +110,34 @@ elif page == "Pipeline":
         
         # Display the table and manage actions
         def manage_row(idx):
-            action_col1, action_col2 = st.columns([8, 1])
+            action_col1, action_col2, action_col3 = st.columns([8, 1, 1])
             with action_col1:
-                st.write(df_display.iloc[idx].to_frame().T.style.hide(axis='index'))
+                row_data_displayed = row_data.copy()
+                row_data_displayed['Candidates'] += f" (+)"
+                st.write(row_data_displayed.to_frame().T.style.hide(axis='index'))
             with action_col2:
+                if st.button(f'+ {idx}', key=f'add_{idx}'):
+                    with st.form(key=f'add_candidate_{idx}'):
+                        new_candidate_name = st.text_input('New Candidate Name')
+                        new_salary = st.number_input('New Salary (£)', min_value=0.0, step=1000.0)
+                        submit_new_candidate = st.form_submit_button('Add Candidate')
+
+                        if submit_new_candidate and new_candidate_name:
+                            current_candidates_list = row_data['Candidates'].split(', ')
+                            current_candidates_list.append(new_candidate_name)
+                            updated_candidates_string = ', '.join(current_candidates_list)
+
+                            current_salaries_list.append(new_salary)
+                            updated_lowest_salary = min(current_salaries_list)
+
+                            df_display.at[idx, 'Candidates'] = updated_candidates_string
+                            df_display.at[idx, 'Lowest Salary'] = updated_lowest_salary
+                            df_display.at[idx, 'Projected Fee £'] = updated_lowest_salary * (row_data['Terms %'] / 100) * (row_data['Probability %'] / 100)
+
+                            df_display.to_csv(DATA_FILE, index=False)
+                            st.success(f"Candidate {new_candidate_name} added successfully!")
+
+            with action_col3:
                 if st.button(f'X {idx}', key=f'del_{idx}'):
                     action_choice = st.radio(f"Action for entry {idx}", ['Delete Permanently', 'Mark as Failed/Pulled Out'], key=f'action_{idx}')
                     if action_choice == 'Delete Permanently':
@@ -125,6 +149,7 @@ elif page == "Pipeline":
         # Apply management actions to the table rows
         delete_indices = []
         for i in range(len(df_display)):
+            row_data = df_display.iloc[i]
             if manage_row(i):
                 delete_indices.append(i)
 
