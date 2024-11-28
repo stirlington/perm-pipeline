@@ -56,11 +56,11 @@ elif page == "Pipeline":
         with col1:
             vacancy = st.text_input('Vacancy')
         with col2:
-            candidates = st.text_area('Candidates (comma-separated)')
+            candidate_name = st.text_input('Candidate Name')
         with col3:
             client = st.text_input('Client')
         with col4:
-            salaries = st.text_input('Salaries (£, comma-separated)')
+            salary = st.number_input('Salary (£)', min_value=0.0, step=1000.0)
         with col5:
             terms = st.number_input('Terms %', min_value=0.0, max_value=100.0, step=0.1)
         with col6:
@@ -71,24 +71,38 @@ elif page == "Pipeline":
         # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
 
-        if submit_entry and vacancy and candidates and client and salaries:
-            salary_list = [float(s) for s in salaries.split(',') if s.strip().isdigit()]
-            if salary_list:
-                lowest_salary = min(salary_list)
+        if submit_entry and vacancy and candidate_name and client:
+            if vacancy in df['Vacancy'].values:
+                idx = df[df['Vacancy'] == vacancy].index[0]
+                current_candidates = df.at[idx, 'Candidates']
+                current_salaries = df.at[idx, 'Lowest Salary']
+                
+                updated_candidates = f"{current_candidates}, {candidate_name}" if current_candidates else candidate_name
+                updated_salaries = min(current_salaries, salary) if current_salaries else salary
+                
+                df.at[idx, 'Candidates'] = updated_candidates
+                df.at[idx, 'Lowest Salary'] = updated_salaries
+                df.at[idx, 'Terms %'] = terms
+                df.at[idx, 'Probability %'] = probability
+                df.at[idx, 'Projected Fee £'] = updated_salaries * (terms / 100) * (probability / 100)
+                df.at[idx, 'Projected Month'] = projected_month if projected_month else None
+
+            else:
                 new_entry = pd.DataFrame([{
                     'Vacancy': vacancy,
-                    'Candidates': candidates,
+                    'Candidates': candidate_name,
                     'Client': client,
-                    'Lowest Salary': lowest_salary,
+                    'Lowest Salary': salary,
                     'Terms %': terms,
                     'Probability %': probability,
-                    'Projected Fee £': lowest_salary * (terms / 100) * (probability / 100),
+                    'Projected Fee £': salary * (terms / 100) * (probability / 100),
                     'Projected Month': projected_month if projected_month else None,
                     'Status': 'Active'
                 }])
                 df = pd.concat([df, new_entry], ignore_index=True)
-                df.to_csv(DATA_FILE, index=False)
-                st.success("Entry added successfully!")
+
+            df.to_csv(DATA_FILE, index=False)
+            st.success("Entry added successfully!")
 
     # Display current pipeline data with deletion option
     if not df.empty:
