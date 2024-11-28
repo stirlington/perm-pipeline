@@ -15,8 +15,11 @@ else:
 st.set_page_config(page_title="Recruitment Pipeline Tracker", layout="wide")
 st.title('Recruitment Pipeline Tracker')
 
-# Display logo
-st.sidebar.image("logo.png", use_column_width=True)
+# Display logo, ensure the file path is correct
+try:
+    st.sidebar.image("logo.png", use_column_width=True)
+except FileNotFoundError:
+    st.sidebar.warning("Logo file not found. Please ensure 'logo.png' is in the root directory.")
 
 # Home page with data table view
 st.header("Recruitment Pipeline Overview")
