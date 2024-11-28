@@ -37,15 +37,23 @@ page = st.sidebar.selectbox("Navigate", ["Pipeline"])
 if page == "Pipeline":
     st.title('Manage Recruitment Pipeline')
     
-    # Form to add new entries
+    # Form to add new entries in a row format
     with st.form(key='add_entry'):
-        name = st.text_input('Candidate Name')
-        client = st.text_input('Client')
-        vacancy = st.text_input('Vacancy')
-        salary = st.number_input('Salary (£)', min_value=0.0, step=1000.0)
-        terms = st.number_input('Terms %', min_value=0.0, max_value=100.0, step=0.1)
-        probability = st.number_input('Probability %', min_value=0.0, max_value=100.0, step=0.1)
-        projected_month = st.selectbox("Projected Month (optional)", [""] + month_options)
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        with col1:
+            name = st.text_input('Candidate Name')
+        with col2:
+            client = st.text_input('Client')
+        with col3:
+            vacancy = st.text_input('Vacancy')
+        with col4:
+            salary = st.number_input('Salary (£)', min_value=0.0, step=1000.0)
+        with col5:
+            terms = st.number_input('Terms %', min_value=0.0, max_value=100.0, step=0.1)
+        with col6:
+            probability = st.number_input('Probability %', min_value=0.0, max_value=100.0, step=0.1)
+        with col7:
+            projected_month = st.selectbox("Projected Month (optional)", [""] + month_options)
         
         # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
@@ -86,4 +94,17 @@ if page == "Pipeline":
             with col3:
                 if st.button(f'Mark Failed {i}', key=f'fail_{i}'):
                     df_display.at[i, 'Status'] = 'Failed/Pulled Out'
-                    df_display.to_csv
+                    df_display.to_csv(DATA_FILE, index=False)
+                    st.success(f"Entry {i} marked as Failed/Pulled Out!")
+        
+        # Refresh the dataframe display after modifications
+        if not df_display.empty:
+            st.dataframe(df_display)
+
+# Download button for the full dataset
+st.sidebar.download_button(
+    label="Download Full Dataset as CSV",
+    data=df.to_csv(index=False).encode('utf-8'),
+    file_name='recruitment_pipeline.csv',
+    mime='text/csv'
+)
