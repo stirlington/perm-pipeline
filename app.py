@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os  # Import the os module
 
 # File paths for data persistence
 DATA_FILE = 'recruitment_data.csv'
