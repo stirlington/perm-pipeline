@@ -28,6 +28,9 @@ if os.path.exists(logo_path):
 else:
     st.sidebar.warning("Logo file not found. Please ensure 'logo.png' is in the root directory.")
 
+# Define month options globally to avoid NameError
+month_options = [f"{month} {year}" for year in range(2024, 2027) for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]]
+
 # Main navigation
 page = st.sidebar.selectbox("Navigate", ["Home", "Pipeline", "Offered", "Invoiced"])
 
@@ -39,7 +42,6 @@ if page == "Home":
     st.metric("Total Pipeline Value (£)", f"{total_value:,.2f}")
 
     # Monthly projection dropdown
-    month_options = [f"{month} {year}" for year in range(2024, 2027) for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]]
     selected_month = st.selectbox("Select Month for Projection", month_options)
     
     # Show projected value for selected month
