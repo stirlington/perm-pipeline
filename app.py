@@ -7,8 +7,8 @@ DATA_FILE = 'recruitment_data.csv'
 # Load or initialize data
 if not os.path.exists(DATA_FILE):
     df = pd.DataFrame(columns=[
-        'Consultant', 'Client Name', 'Role', 'Candidates', 'Salary', 'Currency', 
-        'Fee %', 'Fee (£)', 'Probability %', 'Probability Fee (£)', 
+        'Consultant', 'Client Name', 'Role', 'Candidates', 'Salary', 'Currency',
+        'Fee %', 'Fee (£)', 'Probability %', 'Probability Fee (£)',
         'VAT', 'Est. Invoice Month', 'Status'
     ])
     df.to_csv(DATA_FILE, index=False)
@@ -40,7 +40,7 @@ page = st.sidebar.selectbox("Navigate", ["Pipeline", "Offered", "Invoiced"])
 if page == "Pipeline":
     st.title('Manage Recruitment Pipeline')
 
-    # Editable dataframe using st.data_editor
+    # Editable dataframe using st.experimental_data_editor
     edited_df = st.experimental_data_editor(
         df,
         num_rows="dynamic",
