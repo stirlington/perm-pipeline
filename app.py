@@ -28,7 +28,7 @@ if os.path.exists(logo_path):
 else:
     st.sidebar.warning("Logo file not found. Please ensure 'logo.png' is in the root directory.")
 
-# Define month options globally to avoid NameError
+# Define month options globally
 month_options = [f"{month} {year}" for year in range(2024, 2027) for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]]
 
 # Main navigation
