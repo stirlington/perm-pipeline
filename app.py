@@ -108,29 +108,34 @@ elif page == "Pipeline":
     if not df.empty:
         df_display = calculate_fees(df.copy())
         
-        # Add delete/mark failed buttons in the table itself
-        def delete_or_fail(idx):
-            action = st.radio(f"Action for entry {idx}", ['Delete Permanently', 'Mark as Failed/Pulled Out'], key=f'action_{idx}')
-            if action == 'Delete Permanently':
-                return True
-            elif action == 'Mark as Failed/Pulled Out':
-                df_display.at[idx, 'Status'] = 'Failed/Pulled Out'
-                return False
-
         # Display the table and manage actions
+        def manage_row(idx):
+            action_col1, action_col2 = st.columns([8, 1])
+            with action_col1:
+                st.write(df_display.iloc[idx].to_frame().T.style.hide(axis='index'))
+            with action_col2:
+                if st.button(f'X {idx}', key=f'del_{idx}'):
+                    action_choice = st.radio(f"Action for entry {idx}", ['Delete Permanently', 'Mark as Failed/Pulled Out'], key=f'action_{idx}')
+                    if action_choice == 'Delete Permanently':
+                        return True
+                    elif action_choice == 'Mark as Failed/Pulled Out':
+                        df_display.at[idx, 'Status'] = 'Failed/Pulled Out'
+                        return False
+
+        # Apply management actions to the table rows
+        delete_indices = []
         for i in range(len(df_display)):
-            row_data = df_display.iloc[i]
-            col1, col2 = st.columns([8, 1])
-            with col1:
-                st.write(row_data.to_frame().T.style.hide(axis='index'))
-            with col2:
-                if delete_or_fail(i):
-                    df_display.drop(i, inplace=True)
-                    df_display.reset_index(drop=True, inplace=True)
-                    df_display.to_csv(DATA_FILE, index=False)
-                    st.success(f"Entry {i} deleted successfully!")
+            if manage_row(i):
+                delete_indices.append(i)
+
+        # Delete marked rows from the DataFrame
+        if delete_indices:
+            df_display.drop(delete_indices, inplace=True)
+            df_display.reset_index(drop=True, inplace=True)
+            df_display.to_csv(DATA_FILE, index=False)
+            st.success("Selected entries processed successfully!")
         
-        # Refresh the dataframe display after modifications
+        # Display the updated DataFrame
         if not df_display.empty:
             st.dataframe(df_display)
 
