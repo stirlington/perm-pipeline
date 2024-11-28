@@ -92,12 +92,12 @@ elif page == "Pipeline":
     if not df.empty:
         df_display = calculate_fees(df.copy())
         
-        # Display the table with buttons for each row
+        # Display the table with options to delete or mark as failed
         for i in range(len(df_display)):
             row_data = df_display.iloc[i]
-            col1, col2, col3 = st.columns([4, 1, 1])
+            col1, col2, col3 = st.columns([8, 1, 1])
             with col1:
-                st.write(row_data.to_frame().T)
+                st.write(row_data.to_frame().T.style.hide(axis='index'))
             with col2:
                 if st.button(f'Delete {i}', key=f'del_{i}'):
                     df_display.drop(i, inplace=True)
