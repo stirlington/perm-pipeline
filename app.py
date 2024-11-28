@@ -91,15 +91,27 @@ elif page == "Pipeline":
     # Display current pipeline data with deletion option
     if not df.empty:
         df_display = calculate_fees(df.copy())
-        row_to_delete = st.selectbox("Select row to delete (by index)", df_display.index)
         
-        if st.button('Delete Selected Row'):
-            df_display.drop(row_to_delete, inplace=True)
-            df_display.reset_index(drop=True, inplace=True)
-            df_display.to_csv(DATA_FILE, index=False)
-            st.success("Row deleted successfully!")
+        for i in range(len(df_display)):
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                st.write(df_display.iloc[i].to_dict())
+            with col2:
+                if st.button(f'Delete {i}', key=f'del_{i}'):
+                    confirm_delete = st.radio(f"Confirm action for entry {i}", ('Delete Permanently', 'Mark as Failed/Pulled Out'))
+                    if confirm_delete == 'Delete Permanently':
+                        df_display.drop(i, inplace=True)
+                        df_display.reset_index(drop=True, inplace=True)
+                        df_display.to_csv(DATA_FILE, index=False)
+                        st.success(f"Entry {i} deleted successfully!")
+                    elif confirm_delete == 'Mark as Failed/Pulled Out':
+                        df_display.at[i, 'Status'] = 'Failed/Pulled Out'
+                        df_display.to_csv(DATA_FILE, index=False)
+                        st.success(f"Entry {i} marked as Failed/Pulled Out!")
         
-        st.dataframe(df_display)
+        # Refresh the dataframe display after modifications
+        if not df_display.empty:
+            st.dataframe(df_display)
 
 elif page == "Offered":
     st.title('Offered Candidates')
