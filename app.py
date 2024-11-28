@@ -92,19 +92,21 @@ elif page == "Pipeline":
     if not df.empty:
         df_display = calculate_fees(df.copy())
         
+        # Display the table with buttons for each row
         for i in range(len(df_display)):
-            col1, col2, col3 = st.columns([3, 1, 1])
+            row_data = df_display.iloc[i]
+            col1, col2, col3 = st.columns([4, 1, 1])
             with col1:
-                st.write(df_display.iloc[i].to_dict())
+                st.write(row_data.to_dict())
             with col2:
                 if st.button(f'Delete {i}', key=f'del_{i}'):
-                    confirm_delete = st.radio(f"Confirm action for entry {i}", ('Delete Permanently', 'Mark as Failed/Pulled Out'))
-                    if confirm_delete == 'Delete Permanently':
+                    confirm_action = st.radio(f"Confirm action for entry {i}", ('Delete Permanently', 'Mark as Failed/Pulled Out'))
+                    if confirm_action == 'Delete Permanently':
                         df_display.drop(i, inplace=True)
                         df_display.reset_index(drop=True, inplace=True)
                         df_display.to_csv(DATA_FILE, index=False)
                         st.success(f"Entry {i} deleted successfully!")
-                    elif confirm_delete == 'Mark as Failed/Pulled Out':
+                    elif confirm_action == 'Mark as Failed/Pulled Out':
                         df_display.at[i, 'Status'] = 'Failed/Pulled Out'
                         df_display.to_csv(DATA_FILE, index=False)
                         st.success(f"Entry {i} marked as Failed/Pulled Out!")
