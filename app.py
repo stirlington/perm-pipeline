@@ -69,7 +69,7 @@ elif page == "Pipeline":
         submit_entry = st.form_submit_button('Add Entry')
 
         if submit_entry:
-            new_entry = {
+            new_entry = pd.DataFrame([{
                 'Type': type_,
                 'Name': name,
                 'Client': client,
@@ -83,8 +83,8 @@ elif page == "Pipeline":
                 'Start Month': start_month,
                 'Status': status,
                 'Interview Stage': interview_stage
-            }
-            df = df.append(new_entry, ignore_index=True)
+            }])
+            df = pd.concat([df, new_entry], ignore_index=True)
             df.to_csv(DATA_FILE, index=False)
             st.success("Entry added successfully!")
 
