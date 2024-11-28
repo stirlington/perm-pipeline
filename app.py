@@ -104,28 +104,31 @@ elif page == "Pipeline":
             df.to_csv(DATA_FILE, index=False)
             st.success("Entry added/updated successfully!")
 
-    # Display current pipeline data with deletion option
+    # Display current pipeline data in a single table
     if not df.empty:
         df_display = calculate_fees(df.copy())
         
-        # Display the table with options to delete or mark as failed
+        # Add delete/mark failed buttons in the table itself
+        def delete_or_fail(idx):
+            action = st.radio(f"Action for entry {idx}", ['Delete Permanently', 'Mark as Failed/Pulled Out'], key=f'action_{idx}')
+            if action == 'Delete Permanently':
+                return True
+            elif action == 'Mark as Failed/Pulled Out':
+                df_display.at[idx, 'Status'] = 'Failed/Pulled Out'
+                return False
+
+        # Display the table and manage actions
         for i in range(len(df_display)):
             row_data = df_display.iloc[i]
-            col1, col2, col3 = st.columns([8, 1, 1])
+            col1, col2 = st.columns([8, 1])
             with col1:
                 st.write(row_data.to_frame().T.style.hide(axis='index'))
             with col2:
-                if st.button(f'X {i}', key=f'del_{i}'):
-                    confirm_delete = st.radio(f"Confirm action for entry {i}", ('Delete Permanently', 'Mark as Failed/Pulled Out'))
-                    if confirm_delete == 'Delete Permanently':
-                        df_display.drop(i, inplace=True)
-                        df_display.reset_index(drop=True, inplace=True)
-                        df_display.to_csv(DATA_FILE, index=False)
-                        st.success(f"Entry {i} deleted successfully!")
-                    elif confirm_delete == 'Mark as Failed/Pulled Out':
-                        df_display.at[i, 'Status'] = 'Failed/Pulled Out'
-                        df_display.to_csv(DATA_FILE, index=False)
-                        st.success(f"Entry {i} marked as Failed/Pulled Out!")
+                if delete_or_fail(i):
+                    df_display.drop(i, inplace=True)
+                    df_display.reset_index(drop=True, inplace=True)
+                    df_display.to_csv(DATA_FILE, index=False)
+                    st.success(f"Entry {i} deleted successfully!")
         
         # Refresh the dataframe display after modifications
         if not df_display.empty:
