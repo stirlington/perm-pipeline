@@ -22,9 +22,10 @@ def calculate_fees(df):
 st.set_page_config(page_title="Recruitment Pipeline Tracker", layout="wide")
 
 # Sidebar logo
-try:
-    st.sidebar.image("logo.png", use_container_width=True)
-except FileNotFoundError:
+logo_path = "logo.png"
+if os.path.exists(logo_path):
+    st.sidebar.image(logo_path, use_container_width=True)
+else:
     st.sidebar.warning("Logo file not found. Please ensure 'logo.png' is in the root directory.")
 
 # Main navigation
