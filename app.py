@@ -32,23 +32,9 @@ else:
 month_options = [f"{month} {year}" for year in range(2024, 2027) for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]]
 
 # Main navigation
-page = st.sidebar.selectbox("Navigate", ["Home", "Pipeline"])
+page = st.sidebar.selectbox("Navigate", ["Pipeline"])
 
-if page == "Home":
-    st.title('Recruitment Pipeline Overview')
-    
-    # Calculate total pipeline value
-    total_value = df['Probability Fee £'].sum()
-    st.metric("Total Pipeline Value (£)", f"{total_value:,.2f}")
-
-    # Monthly projection dropdown
-    selected_month = st.selectbox("Select Month for Projection", month_options)
-    
-    # Show projected value for selected month
-    projected_value = df[df['Projected Month'] == selected_month]['Probability Fee £'].sum()
-    st.metric(f"Projected Value for {selected_month} (£)", f"{projected_value:,.2f}")
-
-elif page == "Pipeline":
+if page == "Pipeline":
     st.title('Manage Recruitment Pipeline')
     
     # Form to add new entries
@@ -59,7 +45,7 @@ elif page == "Pipeline":
         salary = st.number_input('Salary (£)', min_value=0.0, step=1000.0)
         terms = st.number_input('Terms %', min_value=0.0, max_value=100.0, step=0.1)
         probability = st.number_input('Probability %', min_value=0.0, max_value=100.0, step=0.1)
-        projected_month = st.selectbox("Projected Month", month_options)
+        projected_month = st.selectbox("Projected Month (optional)", [""] + month_options)
         
         # Submit button for the form
         submit_entry = st.form_submit_button('Add Entry')
@@ -74,7 +60,7 @@ elif page == "Pipeline":
                 'Probability %': probability,
                 'Fee £': salary * (terms / 100),
                 'Probability Fee £': salary * (terms / 100) * (probability / 100),
-                'Projected Month': projected_month,
+                'Projected Month': projected_month if projected_month else None,
                 'Status': 'Active'
             }])
             df = pd.concat([df, new_entry], ignore_index=True)
@@ -100,17 +86,4 @@ elif page == "Pipeline":
             with col3:
                 if st.button(f'Mark Failed {i}', key=f'fail_{i}'):
                     df_display.at[i, 'Status'] = 'Failed/Pulled Out'
-                    df_display.to_csv(DATA_FILE, index=False)
-                    st.success(f"Entry {i} marked as Failed/Pulled Out!")
-        
-        # Refresh the dataframe display after modifications
-        if not df_display.empty:
-            st.dataframe(df_display)
-
-# Download button for the full dataset
-st.sidebar.download_button(
-    label="Download Full Dataset as CSV",
-    data=df.to_csv(index=False).encode('utf-8'),
-    file_name='recruitment_pipeline.csv',
-    mime='text/csv'
-)
+                    df_display.to_csv
