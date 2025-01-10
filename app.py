@@ -1,86 +1,50 @@
 import streamlit as st
 import pandas as pd
-import os  # Ensure the os module is imported
 
-# File paths for data persistence
-DATA_FILE = 'recruitment_data.csv'
+# Title and description
+st.title("Recruitment Pipeline Tracker")
+st.write("This app helps you track and manage your recruitment pipeline.")
 
-# Load or initialize data
-if not os.path.exists(DATA_FILE):
-    df = pd.DataFrame(columns=[
-        'Consultant', 'Client Name', 'Role', 'Candidates', 'Salary', 'Currency',
-        'Fee %', 'Fee (£)', 'Probability %', 'Probability Fee (£)',
-        'VAT', 'Est. Invoice Month', 'Status'
-    ])
-    df.to_csv(DATA_FILE, index=False)
-else:
-    df = pd.read_csv(DATA_FILE)
+# Sidebar for navigation
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Dashboard", "Add Candidate", "Pipeline Overview"])
 
-# Function to calculate fees
-def calculate_fees(row):
-    fee = row['Salary'] * (row['Fee %'] / 100)
-    probability_fee = fee * (row['Probability %'] / 100)
-    return fee, probability_fee
+# Placeholder data for the pipeline
+if "pipeline_data" not in st.session_state:
+    st.session_state.pipeline_data = pd.DataFrame({
+        "Candidate Name": [],
+        "Stage": [],
+        "Source": [],
+        "Date Added": []
+    })
 
-# Streamlit app layout
-st.set_page_config(page_title="Recruitment Pipeline Tracker", layout="wide")
+# Dashboard page
+if page == "Dashboard":
+    st.header("Dashboard")
+    st.write("Overview of recruitment metrics will go here.")
 
-# Sidebar logo
-logo_path = "logo.png"
-if os.path.exists(logo_path):
-    st.sidebar.image(logo_path, use_container_width=True)
-else:
-    st.sidebar.warning("Logo file not found. Please ensure 'logo.png' is in the root directory.")
+# Add Candidate page
+elif page == "Add Candidate":
+    st.header("Add Candidate")
+    with st.form("add_candidate_form"):
+        name = st.text_input("Candidate Name")
+        stage = st.selectbox("Stage", ["Sourced", "Screening", "Interviewing", "Offer Sent", "Hired", "Rejected"])
+        source = st.text_input("Source")
+        date_added = st.date_input("Date Added")
+        submitted = st.form_submit_button("Add Candidate")
 
-# Define month options globally
-month_options = [f"{month} {year}" for year in range(2024, 2027) for month in ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]]
+        if submitted:
+            new_data = pd.DataFrame({
+                "Candidate Name": [name],
+                "Stage": [stage],
+                "Source": [source],
+                "Date Added": [date_added]
+            })
+            st.session_state.pipeline_data = pd.concat([st.session_state.pipeline_data, new_data], ignore_index=True)
+            st.success("Candidate added successfully!")
 
-# Main navigation
-page = st.sidebar.selectbox("Navigate", ["Pipeline", "Offered", "Invoiced"])
-
-if page == "Pipeline":
-    st.title('Manage Recruitment Pipeline')
-
-    # Editable dataframe using st.experimental_data_editor
-    edited_df = st.experimental_data_editor(
-        df,
-        num_rows="dynamic",
-        column_config={
-            "Consultant": st.column_config.SelectboxColumn(options=["Chris", "Max"]),
-            "Currency": st.column_config.SelectboxColumn(options=["USD", "GBP", "EUR"]),
-            "VAT": st.column_config.SelectboxColumn(options=["Yes", "No"]),
-            "Est. Invoice Month": st.column_config.SelectboxColumn(options=month_options),
-        }
-    )
-
-    # Calculate fees and update dataframe
-    for idx in edited_df.index:
-        fee, probability_fee = calculate_fees(edited_df.loc[idx])
-        edited_df.at[idx, 'Fee (£)'] = fee
-        edited_df.at[idx, 'Probability Fee (£)'] = probability_fee
-
-    # Update CSV with changes
-    if st.button("Save Changes"):
-        edited_df.to_csv(DATA_FILE, index=False)
-        st.success("Changes saved successfully!")
-
-    # Display total fees
-    total_fee = edited_df['Fee (£)'].sum()
-    total_probability_fee = edited_df['Probability Fee (£)'].sum()
-    
-    st.write(f"Total Fee: £{total_fee:,.2f}")
-    st.write(f"Total Probability Fee: £{total_probability_fee:,.2f}")
-
-elif page == "Offered":
-    st.title('Offered Candidates')
-    
-elif page == "Invoiced":
-    st.title('Invoiced Candidates')
-
-# Download button for the full dataset
-st.sidebar.download_button(
-    label="Download Full Dataset as CSV",
-    data=edited_df.to_csv(index=False).encode('utf-8'),
-    file_name='recruitment_pipeline.csv',
-    mime='text/csv'
-)
+# Pipeline Overview page
+elif page == "Pipeline Overview":
+    st.header("Pipeline Overview")
+    st.write("Below is the current recruitment pipeline:")
+    st.dataframe(st.session_state.pipeline_data)
